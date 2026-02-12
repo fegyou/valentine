@@ -20,9 +20,13 @@
         font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
         background: linear-gradient(135deg, #ffeef8 0%, #ffe0f0 100%);
         overflow-x: hidden;
+        overflow-y: auto;
         min-height: 100vh;
         /* Prevent scrolling on mobile when button moves */
-        overflow: hidden;
+      }
+
+      canvas {
+        display: block;
       }
 
       /* Floating hearts background */
@@ -308,9 +312,65 @@
           height: 250px;
         }
       }
+
+      .fade-out {
+        animation: fadeOutIntro 1.2s ease forwards;
+      }
+
+      @keyframes fadeOutIntro {
+        from {
+          opacity: 1;
+        }
+        to {
+          opacity: 0;
+        }
+      }
+      /* ===== ROTATE SCREEN FIRST PAGE ===== */
+
+      #rotateScreen {
+        position: fixed;
+        inset: 0;
+        background: linear-gradient(135deg, #2c001e, #55002a);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+        color: gold;
+        text-align: center;
+      }
+
+      .rotate-wrapper {
+        transform: rotate(90deg);
+      }
+
+      .phone {
+        font-size: 90px;
+        margin-bottom: 20px;
+        animation: rotatePhone 1.2s infinite alternate ease-in-out;
+      }
+
+      @keyframes rotatePhone {
+        from {
+          transform: rotate(0deg);
+        }
+        to {
+          transform: rotate(90deg);
+        }
+      }
     </style>
   </head>
   <body>
+    <div id="rotateScreen">
+      <div class="rotate-wrapper">
+        <div class="phone">📱</div>
+        <div class="rotate-text">
+          <h2>Rotate Your Phone</h2>
+          <p>For Better Experience</p>
+        </div>
+      </div>
+    </div>
+    <canvas id="canvas"></canvas>
+    <img id="cupidImg" src="img/cupid.png" style="display: none" />
     <div class="floating-hearts" id="floatingHearts"></div>
 
     <div class="container">
@@ -336,6 +396,205 @@
     <div class="heart-rain" id="heartRain"></div>
 
     <script>
+      const canvas = document.getElementById("canvas");
+      const ctx = canvas.getContext("2d");
+
+      function resize() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+      }
+      resize();
+      window.addEventListener("resize", resize);
+      /* =========================
+   CLEAN CENTER HEART INTRO
+========================= */
+
+      let projectiles = [];
+      let textPoints = [];
+      let introStarted = false;
+      let introFinished = false;
+      let animationRunning = false;
+
+      function resizeCanvas() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+      }
+      resizeCanvas();
+      window.addEventListener("resize", resizeCanvas);
+
+      class HeartProjectile {
+        constructor(tx, ty) {
+          this.startX = canvas.width / 2;
+          this.startY = canvas.height / 2;
+
+          this.tx = tx;
+          this.ty = ty;
+
+          this.progress = 0;
+          this.speed = 0.006 + Math.random() * 0.004;
+
+          this.currentX = this.startX;
+          this.currentY = this.startY;
+          this.done = false;
+        }
+
+        update() {
+          if (this.progress >= 1) {
+            this.done = true;
+            return;
+          }
+
+          this.progress += this.speed;
+          const t = this.progress;
+          const ease = 1 - Math.pow(1 - t, 3);
+
+          this.currentX = this.startX + (this.tx - this.startX) * ease;
+          this.currentY = this.startY + (this.ty - this.startY) * ease;
+        }
+
+        draw() {
+          const size = 5;
+          ctx.fillStyle = "#ff2e63";
+
+          ctx.beginPath();
+          ctx.moveTo(this.currentX, this.currentY);
+          ctx.bezierCurveTo(
+            this.currentX - size,
+            this.currentY - size,
+            this.currentX - 2 * size,
+            this.currentY + size,
+            this.currentX,
+            this.currentY + 2 * size
+          );
+          ctx.bezierCurveTo(
+            this.currentX + 2 * size,
+            this.currentY + size,
+            this.currentX + size,
+            this.currentY - size,
+            this.currentX,
+            this.currentY
+          );
+          ctx.fill();
+        }
+      }
+
+      function generateTextPoints() {
+        const off = document.createElement("canvas");
+        const octx = off.getContext("2d");
+
+        off.width = canvas.width;
+        off.height = canvas.height;
+
+        const fontSize = Math.min(canvas.width / 8, 150);
+
+        octx.fillStyle = "#fff";
+        octx.font = `bold ${fontSize}px Arial`;
+        octx.textAlign = "center";
+        octx.textBaseline = "middle";
+        octx.fillText("Happy Valentine", off.width / 2, off.height / 2);
+
+        const data = octx.getImageData(0, 0, off.width, off.height).data;
+
+        textPoints = [];
+        for (let y = 0; y < off.height; y += 6) {
+          for (let x = 0; x < off.width; x += 6) {
+            const i = (y * off.width + x) * 4;
+            if (data[i + 3] > 150) {
+              textPoints.push({ x, y });
+            }
+          }
+        }
+      }
+
+      let spawningFinished = false;
+      let transitionTriggered = false;
+
+      function startIntro() {
+        generateTextPoints();
+        projectiles = [];
+        spawningFinished = false;
+
+        let i = 0;
+
+        const interval = setInterval(() => {
+          if (i >= textPoints.length) {
+            clearInterval(interval);
+            spawningFinished = true; // ✅ spawning done
+            return;
+          }
+
+          projectiles.push(
+            new HeartProjectile(textPoints[i].x, textPoints[i].y)
+          );
+
+          i++;
+        }, 9); // your current value
+
+        animationRunning = true;
+        animate();
+      }
+      function animate() {
+        if (!animationRunning) return;
+
+        requestAnimationFrame(animate);
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        let finishedCount = 0;
+
+        projectiles.forEach((p) => {
+          p.update();
+          p.draw();
+          if (p.done) finishedCount++;
+        });
+
+        if (
+          spawningFinished &&
+          !transitionTriggered &&
+          finishedCount === projectiles.length
+        ) {
+          transitionTriggered = true;
+
+          // Wait 2 seconds AFTER fully formed
+          setTimeout(() => {
+            canvas.classList.add("fade-out");
+
+            setTimeout(() => {
+              canvas.style.display = "none";
+              document.getElementById("proposalPage").style.display = "block";
+            }, 1000);
+          }, 2000);
+        }
+      }
+
+      /* =========================
+           ORIENTATION CONTROL
+=   ======================== */
+
+      function checkOrientation() {
+        const rotateScreen = document.getElementById("rotateScreen");
+
+        if (window.innerHeight > window.innerWidth) {
+          rotateScreen.style.display = "flex";
+          canvas.style.display = "none";
+          document.querySelector(".container").style.display = "none";
+        } else {
+          rotateScreen.style.display = "none";
+          canvas.style.display = "block";
+          document.querySelector(".container").style.display = "flex";
+
+          if (!introStarted) {
+            introStarted = true;
+
+            setTimeout(() => {
+              startIntro(); // START AFTER 1s
+            }, 1000);
+          }
+        }
+      }
+
+      window.addEventListener("resize", checkOrientation);
+      window.addEventListener("orientationchange", checkOrientation);
+      checkOrientation();
       // Create floating hearts background
       function createFloatingHearts() {
         const container = document.getElementById("floatingHearts");
