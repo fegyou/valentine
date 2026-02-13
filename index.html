@@ -23,6 +23,7 @@
         overflow-y: auto;
         min-height: 100vh;
         /* Prevent scrolling on mobile when button moves */
+        overflow: hidden;
       }
 
       canvas {
@@ -75,9 +76,11 @@
         align-items: center;
         justify-content: center;
         min-height: 100vh;
+        width: 100%; /* Ensure full width */
         padding: 20px;
         position: relative;
         z-index: 2;
+        overflow: hidden; /* Prevents stray scrollbars during scaling */
       }
 
       /* Proposal page */
@@ -357,9 +360,217 @@
           transform: rotate(90deg);
         }
       }
+
+      /* Flashy "CapCut" Text Animation */
+      @keyframes flashy {
+        0% {
+          transform: scale(1);
+          filter: brightness(1) drop-shadow(0 0 0px #ff0077);
+        }
+        50% {
+          transform: scale(1.1);
+          filter: brightness(1.5) drop-shadow(0 0 20px #ff0077);
+        }
+        100% {
+          transform: scale(1);
+          filter: brightness(1) drop-shadow(0 0 0px #ff0077);
+        }
+      }
+
+      .ready-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: #000; /* Black background for that edit vibe */
+        z-index: 3000;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .flashy-text {
+        font-size: 4rem;
+        color: white;
+        font-weight: 900;
+        text-align: center;
+        animation: flashy 0.4s infinite; /* Fast flash */
+        margin-bottom: 20px;
+      }
+
+      .yes-start-btn {
+        padding: 15px 40px;
+        font-size: 1.5rem;
+        background: #ff0077;
+        color: white;
+        border: none;
+        border-radius: 50px;
+        cursor: pointer;
+        font-weight: bold;
+        transition: transform 0.2s;
+      }
+
+      /* RESPONSIVE FIX: For screens with height ~400px */
+      @media (max-height: 450px) {
+        .proposal-card img {
+          max-height: 150px; /* Shrink image so text fits */
+          width: auto;
+        }
+        .proposal-card h1 {
+          font-size: 1.2rem;
+        }
+        .flashy-text {
+          font-size: 2.5rem;
+        }
+
+        /* CAPCUT GLITCH & FLASHY */
+        @keyframes glitch {
+          0% {
+            transform: translate(0);
+            text-shadow: -2px 0 red, 2px 0 blue;
+          }
+          20% {
+            transform: translate(-3px, 2px);
+          }
+          40% {
+            transform: translate(-3px, -2px);
+            text-shadow: 2px 0 red, -2px 0 blue;
+          }
+          60% {
+            transform: translate(3px, 2px);
+          }
+          100% {
+            transform: translate(0);
+          }
+        }
+        .glitch-text {
+          animation: glitch 0.2s infinite;
+          font-size: 4rem;
+          color: white;
+          font-weight: 900;
+          text-align: center;
+        }
+
+        .white-flash {
+          position: fixed;
+          inset: 0;
+          background: white;
+          z-index: 10001;
+          opacity: 0;
+          pointer-events: none;
+        }
+        .run-flash {
+          animation: flashEffect 0.5s ease-out forwards;
+        }
+        @keyframes flashEffect {
+          0% {
+            opacity: 1;
+          }
+          100% {
+            opacity: 0;
+          }
+        }
+
+        /* Zoom animation for the card */
+        @keyframes zoomInBounce {
+          0% {
+            transform: scale(0);
+            opacity: 0;
+          }
+          70% {
+            transform: scale(1.1);
+          }
+          100% {
+            transform: scale(1);
+            opacity: 1;
+          }
+        }
+        .animate-zoom {
+          animation: zoomInBounce 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275)
+            forwards;
+        }
+
+        /* --- RESPONSIVE SCALING FIXES --- */
+
+        /* For Small Screens or Landscape phones with limited height */
+        @media (max-width: 850px) or (max-height: 500px) {
+          .proposal-page {
+            transform: scale(0.85); /* Scales the entire card down slightly */
+            transform-origin: center;
+          }
+
+          .sticker {
+            font-size: 80px; /* Smaller emoji */
+            margin-bottom: 10px;
+          }
+
+          h1 {
+            font-size: 1.8em; /* Shrink title */
+            margin: 10px 0;
+          }
+
+          .emoji-line {
+            font-size: 1.2em; /* Shrink emoji line */
+            margin: 10px 0;
+          }
+
+          .buttons {
+            margin-top: 20px;
+          }
+
+          button {
+            padding: 12px 25px; /* Smaller button padding */
+            font-size: 1.1em;
+          }
+        }
+
+        /* For Extra Small Screens (like small iPhones in landscape) */
+        @media (max-height: 400px) {
+          .proposal-page {
+            transform: scale(0.75); /* Even more scaling */
+          }
+
+          .sticker {
+            font-size: 60px;
+          }
+
+          h1 {
+            font-size: 1.5em;
+          }
+
+          .container {
+            padding: 10px; /* Less padding to give more room */
+          }
+        }
+
+        /* Ensure the Celebration Page also fits */
+        @media (max-height: 500px) {
+          .celebration-title {
+            font-size: 1.8em;
+            margin-bottom: 15px;
+          }
+
+          #heartCanvas {
+            width: 180px; /* Shrink the drawn heart */
+            height: 180px;
+            margin: 10px auto;
+          }
+
+          .message {
+            font-size: 1.2em;
+            margin-top: 15px;
+          }
+        }
+      }
     </style>
   </head>
   <body>
+    <audio id="bgMusic" loop autoplay>
+      <source src="song.mp3" type="audio/mpeg" />
+      Your browser does not support the audio element.
+    </audio>
     <div id="rotateScreen">
       <div class="rotate-wrapper">
         <div class="phone">📱</div>
@@ -369,7 +580,16 @@
         </div>
       </div>
     </div>
+
+    <div id="flashOverlay" class="white-flash"></div>
+
+    <div id="ready-screen" class="ready-overlay" style="display: none">
+      <h1 class="glitch-text">ARE YOU READY!?</h1>
+      <button id="start-btn" class="yes-start-btn">YES! 💖</button>
+    </div>
+
     <canvas id="canvas"></canvas>
+
     <img id="cupidImg" src="img/cupid.png" style="display: none" />
     <div class="floating-hearts" id="floatingHearts"></div>
 
@@ -540,7 +760,6 @@
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
         let finishedCount = 0;
-
         projectiles.forEach((p) => {
           p.update();
           p.draw();
@@ -554,47 +773,89 @@
         ) {
           transitionTriggered = true;
 
-          // Wait 2 seconds AFTER fully formed
+          // After intro is fully formed
           setTimeout(() => {
             canvas.classList.add("fade-out");
 
             setTimeout(() => {
               canvas.style.display = "none";
-              document.getElementById("proposalPage").style.display = "block";
+              mainContainer.style.display = "flex";
+              proposalPage.style.display = "block";
+
+              // TRIGGER THE ZOOM ANIMATION HERE
+              proposalPage.classList.add("animate-zoom");
             }, 1000);
           }, 2000);
         }
       }
-
       /* =========================
-           ORIENTATION CONTROL
-=   ======================== */
+     FIXED ORIENTATION & FLOW
+   ========================= */
+
+      const rotateScreen = document.getElementById("rotateScreen");
+      const readyOverlay = document.getElementById("ready-screen");
+      const startBtn = document.getElementById("start-btn");
+      const flash = document.getElementById("flashOverlay");
+      const mainContainer = document.querySelector(".container");
+
+      let hasStarted = false;
 
       function checkOrientation() {
-        const rotateScreen = document.getElementById("rotateScreen");
+        const isPortrait = window.innerHeight > window.innerWidth;
 
-        if (window.innerHeight > window.innerWidth) {
+        if (isPortrait) {
           rotateScreen.style.display = "flex";
+          readyOverlay.style.display = "none";
           canvas.style.display = "none";
-          document.querySelector(".container").style.display = "none";
+          mainContainer.style.display = "none";
         } else {
           rotateScreen.style.display = "none";
-          canvas.style.display = "block";
-          document.querySelector(".container").style.display = "flex";
 
-          if (!introStarted) {
-            introStarted = true;
-
-            setTimeout(() => {
-              startIntro(); // START AFTER 1s
-            }, 1000);
+          if (!hasStarted) {
+            readyOverlay.style.display = "flex";
+            canvas.style.display = "none";
+            mainContainer.style.display = "none";
+          } else {
+            readyOverlay.style.display = "none";
+            // Only show canvas if we are still doing the intro
+            if (!transitionTriggered) {
+              canvas.style.display = "block";
+            }
           }
         }
       }
 
+      // Start Button Logic
+      startBtn.addEventListener("click", () => {
+        // Trigger CapCut Flash
+        flash.classList.add("run-flash");
+        setTimeout(() => flash.classList.remove("run-flash"), 500);
+
+        hasStarted = true;
+
+        // Unlock Music (If you have a <audio id="bgMusic">)
+        const bgMusic = document.getElementById("bgMusic");
+        if (bgMusic) bgMusic.play();
+
+        // Switch screens
+        readyOverlay.style.display = "none";
+        canvas.style.display = "block";
+
+        if (!introStarted) {
+          introStarted = true;
+          setTimeout(() => {
+            startIntro();
+          }, 500);
+        }
+      });
+
       window.addEventListener("resize", checkOrientation);
       window.addEventListener("orientationchange", checkOrientation);
-      checkOrientation();
+      checkOrientation(); // Initial run
+
+      // Add this line inside your existing animate() function
+      // where the intro finishes to add the zoom effect:
+      // document.getElementById("proposalPage").classList.add("animate-zoom");
       // Create floating hearts background
       function createFloatingHearts() {
         const container = document.getElementById("floatingHearts");
@@ -830,8 +1091,8 @@
 
         // Calculate safe boundaries (Screen size minus button size minus a small margin)
         const padding = 20;
-        const maxX = window.innerWidth - btnWidth - padding;
-        const maxY = window.innerHeight - btnHeight - padding;
+        const maxX = window.innerWidth - btnWidth - padding - 50;
+        const maxY = window.innerHeight - btnHeight - padding - 50;
 
         // Ensure values aren't negative if the button is somehow huge
         const safeMaxX = Math.max(padding, maxX);
