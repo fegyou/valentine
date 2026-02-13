@@ -693,14 +693,16 @@
 
       class HeartProjectile {
         constructor(tx, ty) {
-          this.startX = canvas.width / 2;
-          this.startY = canvas.height / 2;
+          // START FROM BOTTOM: Spread across the width at the bottom
+          this.startX = Math.random() * canvas.width;
+          this.startY = canvas.height + 50; // 50px below the screen
 
           this.tx = tx;
           this.ty = ty;
 
           this.progress = 0;
-          this.speed = 0.006 + Math.random() * 0.004;
+          // Faster speed for a "shooting" feel
+          this.speed = 0.008 + Math.random() * 0.007;
 
           this.currentX = this.startX;
           this.currentY = this.startY;
@@ -715,7 +717,9 @@
 
           this.progress += this.speed;
           const t = this.progress;
-          const ease = 1 - Math.pow(1 - t, 3);
+
+          // Using a "Back" ease-out for a slight bounce or a smooth "Power" ease
+          const ease = 1 - Math.pow(1 - t, 4);
 
           this.currentX = this.startX + (this.tx - this.startX) * ease;
           this.currentY = this.startY + (this.ty - this.startY) * ease;
@@ -746,7 +750,6 @@
           ctx.fill();
         }
       }
-
       function generateTextPoints() {
         const off = document.createElement("canvas");
         const octx = off.getContext("2d");
