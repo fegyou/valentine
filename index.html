@@ -564,6 +564,55 @@
           }
         }
       }
+
+      .white-flash {
+        position: fixed;
+        inset: 0;
+        background: white;
+        z-index: 10001; /* Must be higher than rotate screen */
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      .run-flash {
+        animation: flashEffect 0.5s ease-out forwards;
+      }
+
+      @keyframes flashEffect {
+        0% {
+          opacity: 1;
+        }
+        100% {
+          opacity: 0;
+        }
+      }
+
+      /* Added Glitch effect for the Ready Screen text */
+      @keyframes glitch {
+        0% {
+          transform: translate(0);
+          text-shadow: -2px 0 red, 2px 0 blue;
+        }
+        20% {
+          transform: translate(-3px, 2px);
+        }
+        40% {
+          transform: translate(-3px, -2px);
+          text-shadow: 2px 0 red, -2px 0 blue;
+        }
+        60% {
+          transform: translate(3px, 2px);
+        }
+        100% {
+          transform: translate(0);
+        }
+      }
+      .glitch-text {
+        animation: glitch 0.2s infinite;
+        font-size: 4rem;
+        color: white;
+        font-weight: 900;
+      }
     </style>
   </head>
   <body>
@@ -799,6 +848,27 @@
       const mainContainer = document.querySelector(".container");
 
       let hasStarted = false;
+
+      startBtn.addEventListener("click", () => {
+        // Trigger the visual flash
+        flash.classList.add("run-flash");
+
+        // Remove the class after animation finishes so it can be reused
+        setTimeout(() => {
+          flash.classList.remove("run-flash");
+        }, 500);
+
+        hasStarted = true;
+
+        // Your existing logic to transition screens
+        readyOverlay.style.display = "none";
+        canvas.style.display = "block";
+
+        if (!introStarted) {
+          introStarted = true;
+          startIntro();
+        }
+      });
 
       function checkOrientation() {
         const isPortrait = window.innerHeight > window.innerWidth;
